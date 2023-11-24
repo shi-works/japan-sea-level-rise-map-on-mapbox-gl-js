@@ -23,8 +23,8 @@
     .map-overlay {
       font: bold 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
       position: absolute;
-      width: 180px;
-      bottom: 50px;
+      width: 260px;
+      top: 5px;
       left: 0;
       padding: 10px;
     }
@@ -35,12 +35,13 @@
       border-radius: 3px;
       padding: 10px;
       margin-bottom: 10px;
+      line-height: 15px;
     }
 
     .map-overlay label {
       display: block;
       margin: 0 0 0px;
-      font-size: 12px;
+      font-size: 14px;
       top: 100px;
       left: 10px;
       display: block;
@@ -62,7 +63,8 @@
   <div id="map"></div>
   <div class="map-overlay top">
     <div class="map-overlay-inner">
-      <label>水位: <span id="elevation-slider-value">0m</span></label>
+      <h2>海面上昇シミュレーション</h2>
+      <label>海面高さ: <span id="elevation-slider-value">0m</span></label>
       <input id="elevation-slider" type="range" min="0" max="100" step="1" value="0">
     </div>
   </div>
@@ -74,10 +76,10 @@
       style: 'https://tile.openstreetmap.jp/styles/maptiler-basic-ja/style.json',
       hash: true,
       center: {
-        lat: 35.6425,
-        lng: 139.9598
+        lat: 35.828,
+        lng: 140.048
       },
-      zoom: 8.56,
+      zoom: 8.26,
       language: 'ja',
       attributionControl: false
     });
@@ -107,7 +109,7 @@
     // Attributionを折りたたみ表示
     map.addControl(new mapboxgl.AttributionControl({
       compact: true,
-      customAttribution: '（<a href="https://twitter.com/shi__works" target="_blank">Twitter</a> | <a href="" target="_blank">Github</a>） '
+      customAttribution: '（<a href="https://twitter.com/shi__works" target="_blank">Twitter</a> | <a href="https://github.com/shi-works/sea-level-rise-map-on-mapbox-gl-js" target="_blank">Github</a>） '
     }));
 
     // 地図がロードされたら実行
