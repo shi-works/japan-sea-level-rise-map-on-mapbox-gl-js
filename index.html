@@ -114,12 +114,27 @@
 
     // 地図がロードされたら実行
     map.on('load', () => {
-      // 標高タイルソース
-      map.addSource('raster', {
+      // 標高タイルDEMソース
+      map.addSource('gsi-terrain-dem', {
+        "type": "raster-dem",
+        "minzoom": 1,
+        "maxzoom": 18,
+        // https://github.com/optgeo/et10b
+        "tiles": ["https://smb.optgeo.org/ipfs/QmWGYxRhixi4itNhy1YWtYX9sBcYxuykwENNxDsWMfqNgh/{z}/{x}/{y}.webp"],
+        "tileSize": 512,
+        "attribution": "<a href='https://maps.gsi.go.jp/development/ichiran.html#dem' target='_blank'>地理院タイル(標高タイル)</a>"
+      })
+
+      // 標高タイルDEMセット
+      map.setTerrain({ 'source': 'gsi-terrain-dem', 'exaggeration': 1 });
+
+      // 標高タイルラスターソース
+      map.addSource('gsi-terrain-raster', {
         "type": "raster",
         "minzoom": 1,
         "maxzoom": 18,
         // "tiles": ["https://cyberjapandata.gsi.go.jp/xyz/dem_png/{z}/{x}/{y}.png"],
+        // https://github.com/optgeo/et10b
         "tiles": ["https://smb.optgeo.org/ipfs/QmWGYxRhixi4itNhy1YWtYX9sBcYxuykwENNxDsWMfqNgh/{z}/{x}/{y}.webp"],
         "tileSize": 512,
         "attribution": "<a href='https://maps.gsi.go.jp/development/ichiran.html#dem' target='_blank'>地理院タイル(標高タイル)</a>"
@@ -129,10 +144,10 @@
       // const u = 0.01
       const u = 0.1
 
-      // 標高タイルレイヤ
+      // 標高タイルラスターレイヤ
       map.addLayer({
-        id: 'raster-positive',
-        source: 'raster',
+        id: 'gsi-terrain-raster',
+        source: 'gsi-terrain-raster',
         type: 'raster',
         paint: {
           // 初期状態で全ての標高に対して透明を指定
@@ -189,7 +204,7 @@
         document.getElementById('elevation-slider-value').innerText = elevation + 'm';
 
         // 標高タイルレイヤの色を更新
-        map.setPaintProperty('raster-positive', 'raster-color', [
+        map.setPaintProperty('gsi-terrain-raster', 'raster-color', [
           'step',
           ['raster-value'],
           '#0000FF', elevation,   // 標高がelevation以下の場合の色
