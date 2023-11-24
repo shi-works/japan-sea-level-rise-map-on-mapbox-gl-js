@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>海面上昇シミュレーション（地理院 標高タイル）</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.0-beta.1/mapbox-gl.js'></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.0-beta.1/mapbox-gl.css' rel='stylesheet' />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+
+    .map-overlay {
+      font: bold 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+      position: absolute;
+      width: 180px;
+      bottom: 50px;
+      left: 0;
+      padding: 10px;
+    }
+
+    .map-overlay .map-overlay-inner {
+      background-color: #fff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      border-radius: 3px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .map-overlay label {
+      display: block;
+      margin: 0 0 0px;
+      font-size: 12px;
+      top: 100px;
+      left: 10px;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .map-overlay input {
+      background-color: transparent;
+      display: inline-block;
+      width: 100%;
+      position: relative;
+      margin: 0;
+      cursor: ew-resize;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+  <div class="map-overlay top">
+    <div class="map-overlay-inner">
+      <label>水位: <span id="elevation-slider-value">0m</span></label>
+      <input id="elevation-slider" type="range" min="0" max="100" step="1" value="0">
+    </div>
+  </div>
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1Ijoic2hpd29ya3MiLCJhIjoiY2szeHZjeXJsMDJzdDNsbXczdnN1b3hpNiJ9.VQg_5pGbF1qU_6FZ33Uf4g';
+
+    const map = new mapboxgl.Map({
+      container: "map",
+      style: 'https://tile.openstreetmap.jp/styles/maptiler-basic-ja/style.json',
+      hash: true,
+      center: {
+        lat: 35.6425,
+        lng: 139.9598
+      },
+      zoom: 8.56,
+      language: 'ja',
+      attributionControl: false
+    });
+
+    // ズーム・回転
+    map.addControl(new mapboxgl.NavigationControl());
+
+    // フルスクリーンモードのオンオフ
+    map.addControl(new mapboxgl.FullscreenControl());
+
+    // 現在位置表示
+    map.addControl(new mapboxgl.GeolocateControl({
+      positionOptions: {
+        enableHighAccuracy: false
+      },
+      fitBoundsOptions: { maxZoom: 18 },
+      trackUserLocation: true,
+      showUserLocation: true
+    }));
+
+    // スケール表示
+    map.addControl(new mapboxgl.ScaleControl({
+      maxWidth: 200,
+      unit: 'metric'
+    }));
+
+    // Attributionを折りたたみ表示
+    map.addControl(new mapboxgl.AttributionControl({
+      compact: true,
+      customAttribution: '（<a href="https://twitter.com/shi__works" target="_blank">Twitter</a> | <a href="" target="_blank">Github</a>） '
+    }));
+
+    // 地図がロードされたら実行
+    map.on('load', () => {
+      // 標高タイルソース
+      map.addSource('raster', {
+        "type": "raster",
+        "minzoom": 1,
+        "maxzoom": 18,
+        // "tiles": ["https://cyberjapandata.gsi.go.jp/xyz/dem_png/{z}/{x}/{y}.png"],
+        "tiles": ["https://smb.optgeo.org/ipfs/QmWGYxRhixi4itNhy1YWtYX9sBcYxuykwENNxDsWMfqNgh/{z}/{x}/{y}.webp"],
+        "tileSize": 512,
+        "attribution": "<a href='https://maps.gsi.go.jp/development/ichiran.html#dem' target='_blank'>地理院タイル(標高タイル)</a>"
+      })
+
+      // 標高分解能
+      // const u = 0.01
+      const u = 0.1
+
+      // 標高タイルレイヤ
+      map.addLayer({
+        id: 'raster-positive',
+        source: 'raster',
+        type: 'raster',
+        paint: {
+          // 初期状態で全ての標高に対して透明を指定
+          'raster-color': [
+            'interpolate',
+            ['linear'],
+            ['raster-value'],
+            0, 'transparent',
+            128, 'transparent'
+          ],
+          'raster-color-mix': [
+            /*
+            2 ** 16 * 255 * u,
+            2 ** 8 * 255 * u,
+            255 * u,
+            0
+            */
+            2 ** 16 * 255 * u,
+            2 ** 8 * 255 * u,
+            255 * u,
+            -10000
+          ],
+          'raster-color-range': [0, 128],
+          'raster-opacity': 0.6,
+          'raster-resampling': 'nearest'
+        }
+      })
+
+      // 陰影起伏図ソース
+      map.addSource("hillshade", {
+        type: 'raster',
+        tiles: [
+          'https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png',
+        ],
+        attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html#hillshademap" target="_blank">地理院タイル(陰影起伏図)</a>',
+        tileSize: 256
+      });
+
+      // 陰影起伏図レイヤ
+      map.addLayer({
+        id: 'hillshade',
+        type: 'raster',
+        source: 'hillshade',
+        minzoom: 2,
+        maxzoom: 18,
+        paint: {
+          'raster-opacity': 0.3
+        }
+      });
+
+      // スライダーで標高に応じた色を制御
+      document.getElementById('elevation-slider').addEventListener('input', function (e) {
+        const elevation = parseFloat(e.target.value);
+        document.getElementById('elevation-slider-value').innerText = elevation + 'm';
+
+        // 標高タイルレイヤの色を更新
+        map.setPaintProperty('raster-positive', 'raster-color', [
+          'step',
+          ['raster-value'],
+          '#0000FF', elevation,   // 標高がelevation以下の場合の色
+          'transparent'           // 標高がelevationより高い場合の色
+        ]);
+
+      });
+
+    })
+  </script>
+
+</body>
+
+</html>
