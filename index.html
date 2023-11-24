@@ -171,7 +171,7 @@
             -10000
           ],
           'raster-color-range': [0, 128],
-          'raster-opacity': 0.6,
+          'raster-opacity': 0.7,
           'raster-resampling': 'nearest'
         }
       })
@@ -207,7 +207,7 @@
         map.setPaintProperty('gsi-terrain-raster', 'raster-color', [
           'step',
           ['raster-value'],
-          '#0000FF', elevation,   // 標高がelevation以下の場合の色
+          '#000098', elevation,   // 標高がelevation以下の場合の色
           'transparent'           // 標高がelevationより高い場合の色
         ]);
 
