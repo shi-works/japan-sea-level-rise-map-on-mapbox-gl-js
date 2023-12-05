@@ -66,6 +66,7 @@
       <h2>海面上昇シミュレーション</h2>
       <label>海面高さ: <span id="elevation-slider-value">0m</span></label>
       <input id="elevation-slider" type="range" min="0" max="100" step="1" value="0">
+      <input id="disclaimer-button" type="button" value="免責事項" onclick="showDisclaimer();">
     </div>
   </div>
   <script>
@@ -111,6 +112,11 @@
       compact: true,
       customAttribution: '（<a href="https://twitter.com/shi__works" target="_blank">Twitter</a> | <a href="https://github.com/shi-works/japan-sea-level-rise-map-on-mapbox-gl-js" target="_blank">Github</a>） '
     }));
+
+    function showDisclaimer() {
+      let disclaimerText = `本シミュレーターは地形データで一定の高さ以下の場所を青く塗りつぶす処理をするだけのものであり、ハザードマップとは異なります。 堤防等による防災対策や土砂の堆積等は考慮されていません。 実際の洪水や津波発生時の危険性は各自治体が公表するハザードマップでご確認ください。`
+      alert(disclaimerText)
+    }
 
     // 地図がロードされたら実行
     map.on('load', () => {
